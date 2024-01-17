@@ -6,6 +6,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
 from smtplib import SMTP
+from email.mime.text import MIMEText
+from email.header import Header
 
 from config import *
 
@@ -16,24 +18,34 @@ class OrderActions(StatesGroup):
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-button_1 = KeyboardButton(text='Проблема')
-button_2 = KeyboardButton(text='Кнопка 2')
-keyboard = ReplyKeyboardMarkup(keyboard=[[button_1], [button_2]], resize_keyboard=True)
+button_start = KeyboardButton(text='Вернуться в начало')
+# button_1 = KeyboardButton(text='Решение проблем')
+button_2 = KeyboardButton(text='Сообщение администратору')
+# keyboard = ReplyKeyboardMarkup(keyboard=[[button_1], [button_2]], resize_keyboard=True)
+keyboard = ReplyKeyboardMarkup(keyboard=[[button_start],[button_2]], resize_keyboard=True)
 
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
-    await message.answer('Привет!\nМеня зовут Эхо-бот!\nНапиши мне что-нибудь', reply_markup=keyboard)
+    await message.answer("""Здравствуйте!
+Это бот технической поддержки электронного журнала!
+Нажмите "Сообщение администратору", если вы хотите оставить сообщение""", reply_markup=keyboard)
 
-@dp.message(F.text.lower() == "проблема")
+@dp.message(F.text.lower() == "вернуться в начало")
+async def process_start_command(message: Message):
+    await message.answer("""Здравствуйте!
+Это бот технической поддержки электронного журнала!
+Нажмите "Сообщение администратору", если вы хотите оставить сообщение""", reply_markup=keyboard)
+
+@dp.message(F.text.lower() == "сообщение администратору")
 async def send_name(message: Message, state: FSMContext):
     await state.set_state(OrderActions.name_user)
-    await message.reply(text="Представьтесь")
+    await message.reply(text="Представьтесь", reply_markup=ReplyKeyboardRemove())
 
 @dp.message(StateFilter("OrderActions:name_user"))
 async def send_problem(message: Message, state: FSMContext):
     await state.update_data(name_user=message.text.lower())
     await state.set_state(OrderActions.problem_user)
-    await message.reply(text="Опишите проблему")
+    await message.reply(text="Опишите проблему", reply_markup=ReplyKeyboardRemove())
 
 @dp.message(StateFilter("OrderActions:problem_user"))
 async def send_problem(message: Message, state: FSMContext):
@@ -42,21 +54,22 @@ async def send_problem(message: Message, state: FSMContext):
     name_user = data["name_user"]
     problem_user = data["problem_user"]
 
-    # server = SMTP(smtp_server, port)
-    # server.starttls()  # обновляем соединение с использованием TLS-шифрования
-    # server.login(email, password)
-    #
-    # from_email = email
-    # to_email = "recipient_email@example.com"
-    # subject = "Тестовое сообщение"
-    # message = "Привет, это тестовое сообщение, отправленное с помощью Python и SMTP."
-    #
-    # server.sendmail(from_email, to_email, f"Subject: {subject}\n\n{message}")
-
+    await send_mail(data, name_user)
     await state.clear()
-    await message.reply(text="Спасибо за сообщение!" +" " + name_user, reply_markup=keyboard)
+    await message.reply(text=f"Спасибо за сообщение {name_user}!")
+    await message.reply(text=f"Ваше сообщение отправлено:\nЕго содержание:\n{problem_user}", reply_markup=keyboard)
 
+async def send_mail(data, name_user):
+    server = SMTP(smtp_server, port)
+    server.starttls()  # обновляем соединение с использованием TLS-шифрования
+    server.login(from_email, password)
+    message = data
 
+    mime = MIMEText(message, 'plain', 'utf-8')
+    mime['Subject'] = Header(f"{subject} от {name_user}", 'utf-8')
+
+    server.sendmail(from_email, to_email, mime.as_string())
+    server.quit()
 @dp.message()
 async def send_echo(message: Message):
     await message.reply(text=message.text)
