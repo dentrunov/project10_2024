@@ -38,23 +38,23 @@ async def send_problem(message: Message, state: FSMContext):
 @dp.message(StateFilter("OrderActions:problem_user"))
 async def send_problem(message: Message, state: FSMContext):
     await state.update_data(problem_user=message.text.lower())
-    data = state.get_data()
-    # name_user = data["name_user"]
-    # problem_user = data["problem_user"]
+    data = await state.get_data()
+    name_user = data["name_user"]
+    problem_user = data["problem_user"]
 
-    server = SMTP(smtp_server, port)
-    server.starttls()  # обновляем соединение с использованием TLS-шифрования
-    server.login(email, password)
-
-    from_email = email
-    to_email = "recipient_email@example.com"
-    subject = "Тестовое сообщение"
-    message = "Привет, это тестовое сообщение, отправленное с помощью Python и SMTP."
-
-    server.sendmail(from_email, to_email, f"Subject: {subject}\n\n{message}")
+    # server = SMTP(smtp_server, port)
+    # server.starttls()  # обновляем соединение с использованием TLS-шифрования
+    # server.login(email, password)
+    #
+    # from_email = email
+    # to_email = "recipient_email@example.com"
+    # subject = "Тестовое сообщение"
+    # message = "Привет, это тестовое сообщение, отправленное с помощью Python и SMTP."
+    #
+    # server.sendmail(from_email, to_email, f"Subject: {subject}\n\n{message}")
 
     await state.clear()
-    await message.reply(text="Спасибо за сообщение!" +" " + str(data), reply_markup=keyboard)
+    await message.reply(text="Спасибо за сообщение!" +" " + name_user, reply_markup=keyboard)
 
 
 @dp.message()
