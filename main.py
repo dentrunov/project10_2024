@@ -22,7 +22,7 @@ button_start = KeyboardButton(text='Вернуться в начало')
 # button_1 = KeyboardButton(text='Решение проблем')
 button_2 = KeyboardButton(text='Сообщение администратору')
 # keyboard = ReplyKeyboardMarkup(keyboard=[[button_1], [button_2]], resize_keyboard=True)
-keyboard = ReplyKeyboardMarkup(keyboard=[[button_start],[button_2]], resize_keyboard=True)
+keyboard = ReplyKeyboardMarkup(keyboard=[[button_2], [button_start]], resize_keyboard=True)
 
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
@@ -54,18 +54,18 @@ async def send_problem(message: Message, state: FSMContext):
     name_user = data["name_user"]
     problem_user = data["problem_user"]
 
-    await send_mail(data, name_user)
+    await send_mail(data, name_user, problem_user)
     await state.clear()
-    await message.reply(text=f"Спасибо за сообщение {name_user}!")
+    await message.reply(text=f"Спасибо за сообщение, {name_user}!")
     await message.reply(text=f"Ваше сообщение отправлено:\nЕго содержание:\n{problem_user}", reply_markup=keyboard)
 
-async def send_mail(data, name_user):
+async def send_mail(data, name_user, problem_user):
     server = SMTP(smtp_server, port)
     server.starttls()  # обновляем соединение с использованием TLS-шифрования
     server.login(from_email, password)
-    message = data
-
-    mime = MIMEText(message, 'plain', 'utf-8')
+    message = problem_user
+    print(data)
+    mime = MIMEText(message)
     mime['Subject'] = Header(f"{subject} от {name_user}", 'utf-8')
 
     server.sendmail(from_email, to_email, mime.as_string())
