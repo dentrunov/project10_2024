@@ -19,10 +19,10 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 button_start = KeyboardButton(text='Вернуться в начало')
-# button_1 = KeyboardButton(text='Решение проблем')
+button_1 = KeyboardButton(text='Решение проблем')
 button_2 = KeyboardButton(text='Сообщение администратору')
 # keyboard = ReplyKeyboardMarkup(keyboard=[[button_1], [button_2]], resize_keyboard=True)
-keyboard = ReplyKeyboardMarkup(keyboard=[[button_2], [button_start]], resize_keyboard=True)
+keyboard = ReplyKeyboardMarkup(keyboard=[[button_1], [button_2], [button_start]], resize_keyboard=True)
 
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
@@ -30,8 +30,12 @@ async def process_start_command(message: Message):
 Это бот технической поддержки электронного журнала!
 Нажмите "Сообщение администратору", если вы хотите оставить сообщение""", reply_markup=keyboard)
 
+@dp.message(F.text.lower() == "решение проблем")
+async def process_solve_problems(message: Message):
+    await message.answer("""Вы можете найти решение своей проблемы в базе знаний""", reply_markup=keyboard)
+
 @dp.message(F.text.lower() == "вернуться в начало")
-async def process_start_command(message: Message):
+async def process_come_back(message: Message):
     await message.answer("""Здравствуйте!
 Это бот технической поддержки электронного журнала!
 Нажмите "Сообщение администратору", если вы хотите оставить сообщение""", reply_markup=keyboard)
